@@ -1,0 +1,32 @@
+version: "3.3"
+services:
+  gvm:
+    image: greenbone/gvmd
+    ports:
+      - 80:80
+    depends_on:
+      - postgres
+    environment:
+      PGHOST: postgres
+      PGDATABASE: &pgdb gvmd
+      PGUSER: &pguser gvm
+      GVMD_USER: *pguser
+      PGPASSWORD: &pgpass greenbone
+      GVMD_ARGS: "--listen=0.0.0.0 --db-host=postgres --db-port=5432 --db-user=gvm --database gvmd"
+
+      USER: &user admin
+      PASSWORD: &pass admin
+    volumes:
+      - ./gvm/etc:/etc/gvm
+      - ./gvm/entrypoint.sh:/usr/local/bin/start-gvmd
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: *pguser
+      POSTGRES_PASSWORD: *pgpass
+      POSTGRES_DB: *pgdb
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/postgres/data:/var/lib/postgresql/data/pgdata
+      - ./postgres/enable-plugins.sh:/docker-entrypoint-initdb.d/enable-plugins.sh
